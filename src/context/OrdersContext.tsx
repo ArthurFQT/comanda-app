@@ -1,11 +1,20 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Order } from '../types/Order';
+import {
+  collection,
+  addDoc,
+  onSnapshot,
+  doc,
+  updateDoc,
+} from 'firebase/firestore';
+
+import { db } from '../firebase';
 
 interface OrdersContextData {
   orders: Order[]; // só pendentes
   allOrders: Order[]; // todos os pedidos do turno
-  addOrder: (name: string, quantity: number, flavor: string) => void;
-  completeOrder: (id: string) => void;
+  addOrder: (name: string, quantity: number, flavor: string) => Promise<void>;
+  completeOrder: (id: string) => Promise<void>;
 }
 
 const OrdersContext = createContext({} as OrdersContextData);
@@ -15,36 +24,53 @@ export const OrdersProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const [allOrders, setAllOrders] = useState<Order[]>([]);
 
-  const generateId = () =>
-    `${Date.now()}-${Math.floor(Math.random() * 100000)}`;
+  useEffect(() => {
+    const ordersRef = collection(db, 'orders');
 
-  const addOrder = (name: string, quantity: number, flavor: string) => {
-    const newOrder: Order = {
-      id: generateId(),
+    // Escuta em tempo real todos pedidos do turno (aqui sem filtro, mas pode filtrar se quiser)
+    const unsubscribe = onSnapshot(ordersRef, (snapshot) => {
+      const ordersData = snapshot.docs.map((doc) => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          name: data.name,
+          quantity: data.quantity,
+          flavor: data.flavor,
+          createdAt: data.createdAt.toDate(),
+          status: data.status,
+          completedAt: data.completedAt ? data.completedAt.toDate() : undefined,
+        } as Order;
+      });
+      setAllOrders(ordersData);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  async function addOrder(name: string, quantity: number, flavor: string) {
+    await addDoc(collection(db, 'orders'), {
       name,
       quantity,
       flavor,
       createdAt: new Date(),
       status: 'pending',
-    };
-    setAllOrders(prev => [...prev, newOrder]);
-  };
+    });
+  }
 
+  async function completeOrder(id: string) {
+    const orderDocRef = doc(db, 'orders', id);
+    await updateDoc(orderDocRef, {
+      status: 'completed',
+      completedAt: new Date(),
+    });
+  }
 
-  const completeOrder = (id: string) => {
-    setAllOrders((prev) =>
-      prev.map((order) =>
-        order.id === id
-          ? { ...order, status: 'completed', completedAt: new Date() }
-          : order,
-      ),
-    );
-  };
-
-  const orders = allOrders.filter(order => order.status === 'pending');
+  const orders = allOrders.filter((order) => order.status === 'pending');
 
   return (
-    <OrdersContext.Provider value={{ orders, allOrders, addOrder, completeOrder }}>
+    <OrdersContext.Provider
+      value={{ orders, allOrders, addOrder, completeOrder }}
+    >
       {children}
     </OrdersContext.Provider>
   );
