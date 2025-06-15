@@ -1,21 +1,21 @@
 import React from 'react';
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import HomeScreen from './src/screens/HomeScreen';
+import OrdersScreen from './src/screens/OrdersScreen';
+import { OrdersProvider } from './src/context/OrdersContext';
+
+const Tab = createBottomTabNavigator();
 
 export default function App() {
   return (
-    <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <OrdersProvider>
+      <NavigationContainer>
+        <Tab.Navigator>
+          <Tab.Screen name="Novo Pedido" component={HomeScreen} />
+          <Tab.Screen name="Pedidos" component={OrdersScreen} />
+        </Tab.Navigator>
+      </NavigationContainer>
+    </OrdersProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});

@@ -1,5 +1,5 @@
 {
-  "name": "default.mobile",
+  "name": "comanda-app",
   "version": "1.0.0",
   "main": "index.ts",
   "scripts": {
@@ -12,10 +12,20 @@
     "prettier": "prettier --write ."
   },
   "dependencies": {
+    "@react-native-picker/picker": "2.11.0",
+    "@react-navigation/bottom-tabs": "^7.3.15",
+    "@react-navigation/native": "^7.1.11",
+    "date-fns": "^4.1.0",
     "expo": "~53.0.5",
+    "expo-print": "^14.1.4",
+    "expo-sharing": "~13.1.5",
     "expo-status-bar": "~2.2.3",
     "react": "19.0.0",
-    "react-native": "0.79.2"
+    "react-native": "0.79.2",
+    "react-native-gesture-handler": "~2.24.0",
+    "react-native-safe-area-context": "5.4.0",
+    "react-native-screens": "~4.11.1",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
